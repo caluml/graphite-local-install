@@ -3,6 +3,7 @@
 # I don't like letting Python install stuff all over my system without some sort of package management.
 # Graphite has lots of dependencies, so I want to keep them all in one place.
 # I want to be able to install graphite as a non-root user, in a specific location.
+# I have a user graphite, with home as /home/graphite, and INSTALLLOC as /opt/graphite.
 
 # For CentOS 6.6
 # Taken from https://gist.github.com/SpOOnman/5957589
@@ -10,7 +11,7 @@
 # requirements:
 # gcc, xz
 
-export INSTALLLOC=/opt/graphite
+export INSTALLLOC=/opt/graphite # Make sure your user can write to this location.
 
 export PYTHONVER=2.6.6 # Update PYVER if you change this.
 export PYVER=2.6
@@ -28,12 +29,12 @@ export PATH="$INSTALLLOC/.local/bin:$PATH"
 # need their headers. They are installed to $INSTALLLOC/lib and headers are placed in $INSTALLLOC/include.
 
 wget http://zlib.net/zlib-1.2.8.tar.gz
-wget ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16/libpng-1.6.17.tar.gz
+wget ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16/libpng-1.6.17.tar.gz # really slow :/
 wget http://www.sqlite.org/2013/sqlite-autoconf-3071700.tar.gz
 
-tar zxf zlib-1.2.8.tar.gz
-tar zxf libpng-1.6.17.tar.gz
-tar zxf sqlite-autoconf-3071700.tar.gz
+tar xfz zlib-1.2.8.tar.gz
+tar xfz libpng-1.6.17.tar.gz
+tar xfz sqlite-autoconf-3071700.tar.gz
 
 (cd zlib-1.2.8 && ./configure --prefix=$INSTALLLOC && make && make install ) || echo ERROR BUILDING zlib
 (cd libpng-1.6.17 && ./configure --prefix=$INSTALLLOC && make && make install ) || echo ERROR BUILDING libpng
@@ -44,7 +45,7 @@ tar zxf sqlite-autoconf-3071700.tar.gz
 
 wget http://www.python.org/ftp/python/$PYTHONVER/Python-$PYTHONVER.tgz
 
-tar zxf Python-$PYTHONVER.tgz
+tar xfz Python-$PYTHONVER.tgz
 cd Python-$PYTHONVER
 
 # enable-shared is crucial here
@@ -69,13 +70,13 @@ wget http://ftp.gnome.org/pub/GNOME/sources/glib/2.31/glib-2.31.22.tar.xz
 wget http://cairographics.org/releases/cairo-1.12.2.tar.xz
 wget http://cairographics.org/releases/py2cairo-1.10.0.tar.bz2
 
-tar xzf pixman-0.26.2.tar.gz
-tar xzf libffi-3.0.11.tar.gz
+tar xfz pixman-0.26.2.tar.gz
+tar xfz libffi-3.0.11.tar.gz
 unxz glib-2.31.22.tar.xz
 unxz cairo-1.12.2.tar.xz
 tar xf glib-2.31.22.tar
 tar xf cairo-1.12.2.tar
-tar xjf py2cairo-1.10.0.tar.bz2
+tar xfj py2cairo-1.10.0.tar.bz2
 
 (cd libffi-3.0.11 && ./configure --prefix=$INSTALLLOC && make && make install ) || echo ERROR BUILDING libffi
 (cd glib-2.31.22 && ./configure --prefix=$INSTALLLOC && make && make install ) || echo ERROR BUILDING glib
@@ -97,9 +98,9 @@ wget https://pypi.python.org/packages/source/z/zope.interface/zope.interface-4.0
 wget http://twistedmatrix.com/Releases/Twisted/11.1/Twisted-11.1.0.tar.bz2
 
 unzip zope.interface-4.0.5.zip
-tar zxf django-tagging-0.3.1.tar.gz
-tar zxf Django-1.5.1.tar.gz
-tar jxf Twisted-11.1.0.tar.bz2
+tar xfz django-tagging-0.3.1.tar.gz
+tar xfz Django-1.5.1.tar.gz
+tar xfj Twisted-11.1.0.tar.bz2
 
 (cd zope.interface-4.0.5 && $INSTALLLOC/bin/python setup.py install --user ) || echo ERROR BUILDING zope.interface
 (cd Django-1.5.1 && $INSTALLLOC/bin/python setup.py install --user ) || echo ERROR BUILDING Django
@@ -112,9 +113,9 @@ tar jxf Twisted-11.1.0.tar.bz2
 wget https://launchpad.net/graphite/0.9/0.9.10/+download/graphite-web-0.9.10.tar.gz
 wget https://launchpad.net/graphite/0.9/0.9.10/+download/carbon-0.9.10.tar.gz
 wget https://launchpad.net/graphite/0.9/0.9.10/+download/whisper-0.9.10.tar.gz
-tar zxf graphite-web-0.9.10.tar.gz
-tar zxf carbon-0.9.10.tar.gz
-tar zxf whisper-0.9.10.tar.gz
+tar xfz graphite-web-0.9.10.tar.gz
+tar xfz carbon-0.9.10.tar.gz
+tar xfz whisper-0.9.10.tar.gz
 
 (cd whisper-0.9.10 && $INSTALLLOC/bin/python setup.py install --home=$INSTALLLOC ) || echo ERROR BUILDING whisper
 (cd carbon-0.9.10 && $INSTALLLOC/bin/python setup.py install ) || echo ERROR BUILDING carbon
@@ -157,7 +158,11 @@ vim app_settings.py
 # Create new database for Graphite web application
 $INSTALLLOC/bin/python manage.py syncdb
 
-# Start carbon deamon
+
+vim $INSTALLLOC/conf/carbon.conf
+# Pay attention to: LINE_RECEIVER_INTERFACE, PICKLE_RECEIVER_INTERFACE, CACHE_QUERY_INTERFACE
+
+# Start carbon daemon
 $INSTALLLOC/bin/python $INSTALLLOC/bin/carbon-cache.py status
 $INSTALLLOC/bin/python $INSTALLLOC/bin/carbon-cache.py start
 
@@ -174,8 +179,8 @@ curl localhost:8000
 
 # You can run some example client to send some stats.
 # You can adjust example-client.py delay value for more/less stats.
-cd $INSTALLLOC/graphite/examples
-$INSTALLLOC/bin/python example-client.py
+#cd $INSTALLLOC/graphite/examples
+#$INSTALLLOC/bin/python example-client.py
 
 # Done!
 # Easy as pie :)
